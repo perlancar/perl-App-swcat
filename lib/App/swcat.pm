@@ -54,12 +54,11 @@ our %arg0_software = (
         completion => sub {
             require Complete::Module;
             my %args = @_;
-            my $ans = Complete::Module::complete_module(
+            Complete::Module::complete_module(
                 word => $args{word},
                 ns_prefix => 'Software::Catalog::SW',
+                path_sep => '-',
             );
-            for (@$ans) { s/::/-/g }
-            $ans;
         },
     },
 );
