@@ -8,6 +8,9 @@ use strict 'subs', 'vars';
 use warnings;
 use Log::ger;
 
+use PerlX::Maybe;
+
+use vars '%Config';
 our %SPEC;
 
 our $db_schema_spec = {
@@ -37,6 +40,10 @@ our %args_common = (
             no_cache => {summary => 'Alias for --cache-period=-1', is_flag=>1, code=>sub { $_[0]{cache_period} = -1 }},
         },
     },
+    arch => {
+        schema => 'software::arch*',
+        tags => ['common'],
+    },
 );
 
 our %arg0_software = (
@@ -54,6 +61,12 @@ our %arg0_software = (
             for (@$ans) { s/::/-/g }
             $ans;
         },
+    },
+);
+
+our %arg_arch = (
+    arch => {
+        schema => ['software::arch*'],
     },
 );
 
@@ -95,11 +108,31 @@ sub _connect_db {
     $dbh;
 }
 
+sub _detect_arch {
+    require Config; Config->import;
+    my $archname = $Config{archname};
+    if ($archname =~ /\Ax86-linux/) {
+        return "linux-x86"; # linux i386
+    } elsif ($archname =~ /\Ax86-linux/) {
+    } elsif ($archname =~ /\Ax86_64-linux/) {
+        return "linux-x86_64";
+    } elsif ($archname =~ /\AMSWin32-x86(-|\z)/) {
+        return "win32";
+    } elsif ($archname =~ /\AMSWin32-x64(-|\z)/) {
+        return "win64";
+    } else {
+        die "Unsupported arch '$archname'";
+    }
+}
+
 sub _set_args_default {
     my $args = shift;
     if (!$args->{db_path}) {
         require File::HomeDir;
         $args->{db_path} = File::HomeDir->my_home . '/.cache/swcat.db';
+    }
+    if (!$args->{arch}) {
+        $args->{arch} = _detect_arch;
     }
 }
 
@@ -214,11 +247,41 @@ sub latest_version {
     );
 }
 
+$SPEC{download_url} = {
+    v => 1.1,
+    summary => 'Get download URL(s) of a software',
+    args => {
+        %args_common,
+        %arg0_software,
+        #%arg_version,
+        %arg_arch,
+    },
+};
+sub download_url {
+    my %args = @_;
+    my $state = _init(\%args, 'ro');
+
+    my $mod = _load_swcat_mod($args{software});
+    $mod->get_download_url(
+        maybe arch => $args{arch},
+    );
+}
+
 1;
 # ABSTRACT: Software catalog
 
 =head1 SYNOPSIS
 
 See L<swcat> script.
+
+
+=head1 DESCRIPTION
+
+L<swcat> is a CLI for L<Software::Catalog>.
+
+
+=head1 SEE ALSO
+
+L<Software::Catalog>
 
 =cut

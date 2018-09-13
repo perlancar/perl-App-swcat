@@ -18,6 +18,7 @@ my $cli = Perinci::CmdLine::Any->new(
     subcommands => {
         'list' => {url=>"${prefix}list"},
         'latest-version' => {url=>"${prefix}latest_version"},
+        'download-url' => {url=>"${prefix}download_url"},
     },
 );
 $cli->run;
@@ -27,9 +28,23 @@ $cli->run;
 
 =head1 SYNOPSIS
 
+ # list known software
+ % swcat list
+ % swcat list -l  ;# detail
+
+ # get latest version of a software
+ % swcat latest-version firefox  ;# by default will be cached for a day
+ % swcat latest-version firefox --no-cache
+
+ # get download URL(s) of a software
+ % swcat download-url firefox
+ % swcat download-url firefox --arch win32
+
 
 =head1 SEE ALSO
 
 L<Software::Catalog>
 
 L<App::SoftwareCatalogUtils>
+
+L<instopt> from L<App::instopt>
