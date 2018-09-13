@@ -1,0 +1,35 @@
+#!perl
+
+# DATE
+# VERSION
+
+use 5.010;
+use strict;
+use warnings;
+use Log::ger; BEGIN { $ENV{LOG_LEVEL} //= 'info' }
+
+use Perinci::CmdLine::Any;
+
+my $prefix = "/App/swcat/";
+
+my $cli = Perinci::CmdLine::Any->new(
+    url => $prefix,
+    log => 1,
+    subcommands => {
+        'list' => {url=>"${prefix}list"},
+        'latest-version' => {url=>"${prefix}latest_version"},
+    },
+);
+$cli->run;
+
+# ABSTRACT: Software catalog
+# PODNAME:
+
+=head1 SYNOPSIS
+
+
+=head1 SEE ALSO
+
+L<Software::Catalog>
+
+L<App::SoftwareCatalogUtils>
