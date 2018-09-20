@@ -19,6 +19,7 @@ my $cli = Perinci::CmdLine::Any->new(
         'list' => {url=>"${prefix}list"},
         'latest-version' => {url=>"${prefix}latest_version"},
         'download-url' => {url=>"${prefix}download_url"},
+        'download' => {url=>"${prefix}download"},
     },
 );
 $cli->run;
@@ -27,6 +28,13 @@ $cli->run;
 # PODNAME:
 
 =head1 SYNOPSIS
+
+In F<~/.config/swcat.conf>:
+
+ ; if not specified, defaults to ~/archive
+ archive_dir = /media/software
+
+Then:
 
  # list known software
  % swcat list
@@ -39,6 +47,9 @@ $cli->run;
  # get download URL(s) of a software
  % swcat download-url firefox
  % swcat download-url firefox --arch win32
+
+ # download latest version of a software (to $archive_dir/f/firefox/$ver/$arch/)
+ % swcat download firefox
 
 
 =head1 SEE ALSO

@@ -63,9 +63,15 @@ our %arg0_software = (
     },
 );
 
-our %arg_arch = (
+our %argopt_arch = (
     arch => {
         schema => ['software::arch*'],
+    },
+);
+
+our %argopt_download_dir = (
+    download_dir => {
+        schema => ['dirname*'],
     },
 );
 
@@ -127,11 +133,50 @@ sub _detect_arch {
 sub _set_args_default {
     my $args = shift;
     if (!$args->{db_path}) {
-        require File::HomeDir;
-        $args->{db_path} = File::HomeDir->my_home . '/.cache/swcat.db';
+        require PERLANCAR::File::HomeDir;
+        $args->{db_path} = PERLANCAR::File::HomeDir::get_my_home_dir() .
+            '/.cache/swcat.db';
     }
     if (!$args->{arch}) {
         $args->{arch} = _detect_arch;
+    }
+    if (!$args->{download_dir}) {
+        require PERLANCAR::File::HomeDir;
+        $args->{download_dir} = PERLANCAR::File::HomeDir::get_my_home_dir() .
+            '/software';
+    }
+}
+
+my $_ua;
+sub _ua {
+    unless ($_ua) {
+        require LWP::UserAgent;
+        $_ua = LWP::UserAgent->new;
+    }
+    $_ua;
+}
+
+# resolve redirects
+sub _real_url {
+    require HTTP::Request;
+
+    my $url = shift;
+
+    my $ua = _ua();
+    while (1) {
+        my $res = $ua->simple_request(HTTP::Request->new(HEAD => $url));
+        if ($res->code =~ /^3/) {
+            if ($res->header("Location")) {
+                $url = $res->header("Location");
+                next;
+            } else {
+                die "URL '$url' redirects without Location";
+            }
+        } elsif ($res->code !~ /^2/) {
+            die "Can't HEAD URL '$url': ".$res->code." - ".$res->message;
+        } else {
+            return $url;
+        }
     }
 }
 
@@ -253,7 +298,7 @@ $SPEC{download_url} = {
         %args_common,
         %arg0_software,
         #%arg_version,
-        %arg_arch,
+        %argopt_arch,
     },
 };
 sub download_url {
@@ -261,9 +306,64 @@ sub download_url {
     my $state = _init(\%args, 'ro');
 
     my $mod = _load_swcat_mod($args{software});
-    $mod->get_download_url(
+    my $res = $mod->get_download_url(
         maybe arch => $args{arch},
     );
+}
+
+$SPEC{download} = {
+    v => 1.1,
+    summary => 'Download latest version of a software',
+    args => {
+        %args_common,
+        %arg0_software,
+        #%arg_version,
+        %argopt_arch,
+        %argopt_download_dir,
+    },
+};
+sub download {
+    require File::Path;
+
+    my %args = @_;
+    my $state = _init(\%args, 'ro');
+
+    my $mod = _load_swcat_mod($args{software});
+    my $res;
+
+    $res = latest_version(%args);
+    return $res if $res->[0] != 200;
+    my $v = $res->[2];
+
+    $res = $mod->get_download_url(
+        arch => $args{arch},
+    );
+    return $res if $res->[0] != 200;
+    my @urls = ref($res->[2]) eq 'ARRAY' ? @{$res->[2]} : ($res->[2]);
+
+    my $target_dir = join(
+        "",
+        $args{download_dir},
+        "/", substr($args{software}, 0, 1),
+        "/", $args{software},
+        "/", $v,
+        "/", $args{arch},
+    );
+    File::Path::make_path($target_dir);
+
+    my $ua = _ua();
+    for my $url0 (@urls) {
+        my $url = _real_url($url0);
+        my ($filename) = $url =~ m!.+/(.+)!;
+        my $target_path = "$target_dir/$filename";
+        log_info "Downloading %s to %s ...", $url, $target_path;
+        my $lwpres = $ua->mirror($url, $target_path);
+        unless ($lwpres->is_success || $lwpres->code =~ /^304/) {
+            die "Can't download $url to $target_path: " .
+                $lwpres->code." - ".$lwpres->message;
+        }
+    }
+    [200];
 }
 
 1;
