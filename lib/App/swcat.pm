@@ -138,39 +138,6 @@ sub _set_args_default {
     }
 }
 
-my $_ua;
-sub _ua {
-    unless ($_ua) {
-        require LWP::UserAgent;
-        $_ua = LWP::UserAgent->new;
-    }
-    $_ua;
-}
-
-# resolve redirects
-sub _real_url {
-    require HTTP::Request;
-
-    my $url = shift;
-
-    my $ua = _ua();
-    while (1) {
-        my $res = $ua->simple_request(HTTP::Request->new(HEAD => $url));
-        if ($res->code =~ /^3/) {
-            if ($res->header("Location")) {
-                $url = $res->header("Location");
-                next;
-            } else {
-                die "URL '$url' redirects without Location";
-            }
-        } elsif ($res->code !~ /^2/) {
-            die "Can't HEAD URL '$url': ".$res->code." - ".$res->message;
-        } else {
-            return $url;
-        }
-    }
-}
-
 sub _init {
     my ($args, $mode) = @_;
 
