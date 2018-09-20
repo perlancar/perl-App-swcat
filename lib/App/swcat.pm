@@ -34,7 +34,6 @@ our %args_common = (
     },
     cache_period => {
         schema => 'int*',
-        default => 86400,
         tags => ['common'],
         cmdline_aliases => {
             no_cache => {summary => 'Alias for --cache-period=-1', is_flag=>1, code=>sub { $_[0]{cache_period} = -1 }},
@@ -66,12 +65,6 @@ our %arg0_software = (
 our %argopt_arch = (
     arch => {
         schema => ['software::arch*'],
-    },
-);
-
-our %argopt_download_dir = (
-    download_dir => {
-        schema => ['dirname*'],
     },
 );
 
@@ -140,10 +133,8 @@ sub _set_args_default {
     if (!$args->{arch}) {
         $args->{arch} = _detect_arch;
     }
-    if (!$args->{download_dir}) {
-        require PERLANCAR::File::HomeDir;
-        $args->{download_dir} = PERLANCAR::File::HomeDir::get_my_home_dir() .
-            '/software';
+    if (!defined $args->{cache_period}) {
+        $args->{cache_period} = 86400;
     }
 }
 
@@ -309,63 +300,6 @@ sub download_url {
     my $res = $mod->get_download_url(
         maybe arch => $args{arch},
     );
-}
-
-$SPEC{download} = {
-    v => 1.1,
-    summary => 'Download latest version of a software',
-    args => {
-        %args_common,
-        %arg0_software,
-        #%arg_version,
-        %argopt_arch,
-        %argopt_download_dir,
-    },
-};
-sub download {
-    require File::Path;
-    require URI::Escape;
-
-    my %args = @_;
-    my $state = _init(\%args, 'ro');
-
-    my $mod = _load_swcat_mod($args{software});
-    my $res;
-
-    $res = latest_version(%args);
-    return $res if $res->[0] != 200;
-    my $v = $res->[2];
-
-    $res = $mod->get_download_url(
-        arch => $args{arch},
-    );
-    return $res if $res->[0] != 200;
-    my @urls = ref($res->[2]) eq 'ARRAY' ? @{$res->[2]} : ($res->[2]);
-
-    my $target_dir = join(
-        "",
-        $args{download_dir},
-        "/", substr($args{software}, 0, 1),
-        "/", $args{software},
-        "/", $v,
-        "/", $args{arch},
-    );
-    File::Path::make_path($target_dir);
-
-    my $ua = _ua();
-    for my $url0 (@urls) {
-        my $url = _real_url($url0);
-        my ($filename) = $url =~ m!.+/(.+)!;
-        $filename = URI::Escape::uri_unescape($filename);
-        my $target_path = "$target_dir/$filename";
-        log_info "Downloading %s to %s ...", $url, $target_path;
-        my $lwpres = $ua->mirror($url, $target_path);
-        unless ($lwpres->is_success || $lwpres->code =~ /^304/) {
-            die "Can't download $url to $target_path: " .
-                $lwpres->code." - ".$lwpres->message;
-        }
-    }
-    [200];
 }
 
 1;

@@ -29,13 +29,6 @@ $cli->run;
 
 =head1 SYNOPSIS
 
-In F<~/.config/swcat.conf>:
-
- ; if not specified, defaults to ~/archive
- archive_dir = /media/software
-
-Then:
-
  # list known software
  % swcat list
  % swcat list -l  ;# detail
@@ -47,9 +40,6 @@ Then:
  # get download URL(s) of a software
  % swcat download-url firefox
  % swcat download-url firefox --arch win32
-
- # download latest version of a software (to $archive_dir/f/firefox/$ver/$arch/)
- % swcat download firefox
 
 
 =head1 SEE ALSO
