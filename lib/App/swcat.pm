@@ -324,6 +324,7 @@ $SPEC{download} = {
 };
 sub download {
     require File::Path;
+    require URI::Escape;
 
     my %args = @_;
     my $state = _init(\%args, 'ro');
@@ -355,6 +356,7 @@ sub download {
     for my $url0 (@urls) {
         my $url = _real_url($url0);
         my ($filename) = $url =~ m!.+/(.+)!;
+        $filename = URI::Escape::uri_unescape($filename);
         my $target_path = "$target_dir/$filename";
         log_info "Downloading %s to %s ...", $url, $target_path;
         my $lwpres = $ua->mirror($url, $target_path);
