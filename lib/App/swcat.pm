@@ -14,9 +14,30 @@ use vars '%Config';
 our %SPEC;
 
 our $db_schema_spec = {
-    latest_v => 1,
+    latest_v => 2,
 
     install => [
+        'CREATE TABLE sw_cache (
+             software VARCHAR(128) NOT NULL,
+             name VARCHAR(64) NOT NULL,
+             value TEXT NOT NULL,
+             mtime INT NOT NULL
+         )',
+        'CREATE UNIQUE INDEX ix_sw_cache__software_name ON sw_cache(software,name)',
+    ], # install
+
+    upgrade_to_v2 => [
+        'DROP TABLE sw_cache', # remove all cache
+        'CREATE TABLE sw_cache (
+             software VARCHAR(128) NOT NULL,
+             name VARCHAR(64) NOT NULL,
+             value TEXT NOT NULL,
+             mtime INT NOT NULL
+         )',
+        'CREATE UNIQUE INDEX ix_sw_cache__software_name ON sw_cache(software,name)',
+    ],
+
+    install_v1 => [
         'CREATE TABLE sw_cache (
              software VARCHAR(128) NOT NULL PRIMARY KEY,
              latest_version VARCHAR(32),
@@ -160,8 +181,25 @@ sub _cache_result {
     my $res;
   RETRIEVE: {
         my $cache_exists;
-        log_trace "Getting value from cache ($args{table}, $args{column}, $args{pk}) ...";
-        my @row = $args{dbh}->selectrow_array("SELECT $args{column}, $args{mtime_column} FROM $args{table} WHERE $args{pk_column}=?", {}, $args{pk});
+        log_trace "Getting value from cache (table=%s, column=%s, pk=%s) ...", $args{table}, $args{column}, $args{pk};
+
+        my $sqlwhere;
+        my $sqlcolumns;
+        my $sqlbinds;
+        my @bind;
+        if (ref $args{pk_column} eq 'ARRAY') {
+            $sqlwhere = join(" AND ", map {"$_=?"} @{ $args{pk_column} });
+            $sqlcolumns = join(",", @{ $args{pk_column} });
+            $sqlbinds = join(",", map {"?"} @{ $args{pk_column} });
+            push @bind, @{ $args{pk} };
+        } else {
+            $sqlwhere = "$args{pk_column}=?";
+            $sqlcolumns = $args{pk_column};
+            $sqlbinds = "?";
+            push @bind, $args{pk};
+        }
+
+        my @row = $args{dbh}->selectrow_array("SELECT $args{column}, $args{mtime_column} FROM $args{table} WHERE $sqlwhere", {}, @bind);
         if (!@row) {
             log_trace "Cache doesn't exist yet";
         } elsif ($row[1] < $now - $args{cache_period}) {
@@ -176,9 +214,9 @@ sub _cache_result {
         if ($res->[0] == 200) {
             log_trace "Updating cache ...";
             if ($cache_exists) {
-                $args{dbh}->do("UPDATE $args{table} SET $args{column}=?, $args{mtime_column}=? WHERE $args{pk_column}=?", {}, $res->[2], $now, $args{pk});
+                $args{dbh}->do("UPDATE $args{table} SET $args{column}=?, $args{mtime_column}=? WHERE $sqlwhere", {}, $res->[2], $now, $args{pk}, @bind);
             } else {
-                $args{dbh}->do("INSERT INTO $args{table} ($args{pk_column}, $args{column}, $args{mtime_column}) VALUES (?,?,?)", {}, $args{pk}, $res->[2], $now);
+                $args{dbh}->do("INSERT INTO $args{table} ($sqlcolumns, $args{column}, $args{mtime_column}) VALUES ($sqlbinds, ?,?)", {}, @bind, $res->[2], $now);
             }
         }
     }
@@ -238,14 +276,14 @@ sub latest_version {
 
     my $mod = _load_swcat_mod($args{software});
     _cache_result(
-        code => sub { $mod->get_latest_version },
+        code => sub { $mod->get_latest_version(arch => $args{arch}) },
         dbh => $state->{dbh},
         cache_period => $args{cache_period},
         table => 'sw_cache',
-        pk_column => 'software',
-        pk => $args{software},
-        column => 'latest_version',
-        mtime_column => 'check_latest_version_mtime',
+        pk_column => ['software', 'name'],
+        pk => [$args{software}, "latest_version.$args{arch}"],
+        column => 'value',
+        mtime_column => 'mtime',
     );
 }
 
