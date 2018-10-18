@@ -351,7 +351,7 @@ sub latest_version {
     my $state = _init(\%args, 'rw');
 
     my ($sws, $is_single_software) = _get_arg_software_or_patterns(\%args);
-    log_trace "sws=%s", $sws;
+    #log_trace "sws=%s", $sws;
 
     my $envres = envresmulti();
     my @rows;
