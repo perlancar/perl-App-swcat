@@ -190,8 +190,8 @@ sub _set_args_default {
 sub _init {
     my ($args, $mode) = @_;
 
+    _set_args_default($args);
     unless ($App::swcat::state) {
-        _set_args_default($args);
         my $state = {
             dbh => _connect_db($mode, $args->{db_path}),
             db_path => $args->{db_path},
