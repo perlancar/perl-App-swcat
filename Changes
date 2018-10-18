@@ -1,3 +1,8 @@
+0.007   2018-10-18 (PERLANCAR)
+
+	- [Bugfix] Don't only set argument default once, but every time.
+
+
 0.006   2018-10-18 (PERLANCAR)
 
 	- Rename internal subroutine for consistency.
