@@ -106,8 +106,8 @@ our %argopt0_softwares_or_patterns = (
 );
 
 our %arg0_softwares_or_patterns;
-%arg0_softwares_or_patterns{software_or_pattern} = {
-    %{$argopt0_softwares_or_patterns{software_or_pattern}},
+$arg0_softwares_or_patterns{softwares_or_patterns} = {
+    %{$argopt0_softwares_or_patterns{softwares_or_patterns}},
     req => 1,
 };
 

@@ -1,3 +1,8 @@
+0.005   2018-10-18 (PERLANCAR)
+
+	- Define %arg0_softwares_or_patterns.
+
+
 0.004   2018-10-18 (PERLANCAR)
 
 	- list-version & download-url: Accept multiple software
