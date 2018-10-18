@@ -1,3 +1,11 @@
+0.004   2018-10-18 (PERLANCAR)
+
+	- list-version & download-url: Accept multiple software
+	  names/patterns.
+
+	- [bugfix] Fix updating sw_cache record.
+
+
 0.003   2018-09-21 (PERLANCAR)
 
 	- latest-version: Supply 'arch' to get_latest_version.
