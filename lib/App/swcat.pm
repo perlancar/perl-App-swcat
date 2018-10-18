@@ -291,7 +291,7 @@ sub list {
     [200, "OK", \@rows];
 }
 
-sub _get_arg_software_or_patterns {
+sub _get_arg_softwares_or_patterns {
     my $args = shift;
 
     my $sws = $args->{softwares_or_patterns} // [];
@@ -350,7 +350,7 @@ sub latest_version {
     my %args = @_;
     my $state = _init(\%args, 'rw');
 
-    my ($sws, $is_single_software) = _get_arg_software_or_patterns(\%args);
+    my ($sws, $is_single_software) = _get_arg_softwares_or_patterns(\%args);
     #log_trace "sws=%s", $sws;
 
     my $envres = envresmulti();
@@ -403,7 +403,7 @@ sub download_url {
     my %args = @_;
     my $state = _init(\%args, 'ro');
 
-    my ($sws, $is_single_software) = _get_arg_software_or_patterns(\%args);
+    my ($sws, $is_single_software) = _get_arg_softwares_or_patterns(\%args);
 
     my $envres = envresmulti();
     my @rows;
