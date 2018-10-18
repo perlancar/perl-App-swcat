@@ -36,6 +36,15 @@ $cli->run;
  % swcat latest-version firefox  ;# by default will be cached for a day
  % swcat latest-version firefox --no-cache
 
+ # get latest version of a few software
+ % swcat latest-version firefox seamonkey
+
+ # get latest version of all known software
+ % swcat latest-version
+
+ # get latest version of known software matching a regex
+ % swcat latest-version /fire|sea/
+
  # get download URL(s) of a software
  % swcat download-url firefox
  % swcat download-url firefox --arch win32
