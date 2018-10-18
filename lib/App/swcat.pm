@@ -105,6 +105,12 @@ our %argopt0_softwares_or_patterns = (
     },
 );
 
+our %arg0_softwares_or_patterns;
+%arg0_softwares_or_patterns{software_or_pattern} = {
+    %{$argopt0_softwares_or_patterns{software_or_pattern}},
+    req => 1,
+};
+
 our %argopt_arch = (
     arch => {
         schema => ['software::arch*'],
