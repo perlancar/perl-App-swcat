@@ -200,6 +200,7 @@ sub _cache_result {
         }
 
         my @row = $args{dbh}->selectrow_array("SELECT $args{column}, $args{mtime_column} FROM $args{table} WHERE $sqlwhere", {}, @bind);
+        #log_trace "row=%s, now=%s, cache_period=%s", \@row, $now, $args{cache_period};
         if (!@row) {
             log_trace "Cache doesn't exist yet";
         } elsif ($row[1] < $now - $args{cache_period}) {
@@ -214,7 +215,7 @@ sub _cache_result {
         if ($res->[0] == 200) {
             log_trace "Updating cache ...";
             if ($cache_exists) {
-                $args{dbh}->do("UPDATE $args{table} SET $args{column}=?, $args{mtime_column}=? WHERE $sqlwhere", {}, $res->[2], $now, $args{pk}, @bind);
+                $args{dbh}->do("UPDATE $args{table} SET $args{column}=?, $args{mtime_column}=? WHERE $sqlwhere", {}, $res->[2], $now, @bind);
             } else {
                 $args{dbh}->do("INSERT INTO $args{table} ($sqlcolumns, $args{column}, $args{mtime_column}) VALUES ($sqlbinds, ?,?)", {}, @bind, $res->[2], $now);
             }
