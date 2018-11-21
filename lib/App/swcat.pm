@@ -427,6 +427,29 @@ sub download_url {
     $res;
 }
 
+$SPEC{archive_info} = {
+    v => 1.1,
+    summary => 'Get info of a software archive',
+    args => {
+        %args_common,
+        %arg0_software,
+        #%arg_version,
+        %argopt_arch,
+    },
+};
+sub archive_info {
+    my %args = @_;
+    my $state = _init(\%args, 'ro');
+
+    my $sw = $args{software};
+
+    my $mod = _load_swcat_mod($sw);
+    my $res = $mod->get_archive_info(
+        maybe arch => $args{arch},
+    );
+    $res;
+}
+
 1;
 # ABSTRACT: Software catalog
 

@@ -19,6 +19,7 @@ my $cli = Perinci::CmdLine::Any->new(
         'list' => {url=>"${prefix}list"},
         'latest-version' => {url=>"${prefix}latest_version"},
         'download-url' => {url=>"${prefix}download_url"},
+        'archive-info' => {url=>"${prefix}archive_info"},
     },
 );
 $cli->run;
