@@ -18,7 +18,9 @@ my $cli = Perinci::CmdLine::Any->new(
     subcommands => {
         'list' => {url=>"${prefix}list"},
         'latest-version' => {url=>"${prefix}latest_version"},
+        'available-versions' => {url=>"${prefix}available_versions"},
         'download-url' => {url=>"${prefix}download_url"},
+        'release-note' => {url=>"${prefix}release_note"},
         'archive-info' => {url=>"${prefix}archive_info"},
     },
 );
@@ -45,6 +47,15 @@ $cli->run;
 
  # get latest version of known software matching a regex
  % swcat latest-version /fire|sea/
+
+ # get list of available versions of a software
+ % swcat available-versions bulwark-qt
+
+ # get release note for the latest version of a software
+ % swcat release-note bulwark-qt
+
+ # get release note for a version of a software
+ % swcat release-note bulwark-qt 1.3.0
 
  # get download URL(s) of a software
  % swcat download-url firefox

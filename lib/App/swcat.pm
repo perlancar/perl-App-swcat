@@ -86,6 +86,13 @@ our %arg0_software = (
     },
 );
 
+our %argopt1_version = (
+    version => {
+        schema => ['str*'],
+        pos => 1,
+    },
+);
+
 our %argopt0_softwares_or_patterns = (
     softwares_or_patterns => {
         'x.name.is_plural' => 1,
@@ -382,6 +389,29 @@ sub latest_version {
     $res;
 }
 
+$SPEC{available_versions} = {
+    v => 1.1,
+    summary => 'Get list of available versions of a software',
+    description => <<'_',
+
+
+_
+    args => {
+        %args_common,
+        %arg0_software,
+    },
+};
+sub available_versions {
+    my %args = @_;
+    my $state = _init(\%args, 'rw');
+
+    my $sw = $args{software};
+
+    my $mod = _load_swcat_mod($sw);
+    return [501, "Not implemented"] unless $mod->can("get_available_versions");
+    $mod->get_available_versions(arch => $args{arch});
+}
+
 $SPEC{download_url} = {
     v => 1.1,
     summary => 'Get download URL(s) of a software',
@@ -425,6 +455,30 @@ sub download_url {
         $res->[2] = \@rows;
     }
     $res;
+}
+
+$SPEC{release_note} = {
+    v => 1.1,
+    summary => 'Get release note of (a version of) a software',
+    description => <<'_',
+
+
+_
+    args => {
+        %args_common,
+        %arg0_software,
+        %argopt_arch,
+        %argopt1_version,
+    },
+};
+sub release_note {
+    my %args = @_;
+    my $state = _init(\%args, 'ro');
+
+    my $sw = delete $args{software};
+    my $mod = _load_swcat_mod($sw);
+    return [501, "Not implemented"] unless $mod->can("get_available_versions");
+    $mod->get_release_note(%args);
 }
 
 $SPEC{archive_info} = {
