@@ -31,21 +31,22 @@ $cli->run;
 
 =head1 SYNOPSIS
 
- # list known software
+ # list known software (known = has correponding Software::Catalog::SW::*
+ # module installed)
  % swcat list
  % swcat list -l  ;# detail
 
- # get latest version of a software
+ # what is the latest version number of a software?
  % swcat latest-version firefox  ;# by default will be cached for a day
  % swcat latest-version firefox --no-cache
 
- # get latest version of a few software
+ # what is the latest version number of a few software
  % swcat latest-version firefox seamonkey
 
- # get latest version of all known software
+ # list the latest version numbers of all known software
  % swcat latest-version
 
- # get latest version of known software matching a regex
+ # list the latest version numbers of known software matching a regex
  % swcat latest-version /fire|sea/
 
  # get list of available versions of a software
@@ -60,6 +61,9 @@ $cli->run;
  # get download URL(s) of a software
  % swcat download-url firefox
  % swcat download-url firefox --arch win32
+
+To actually download, install, upgrade software, use L<instopt> (from
+App::instopt).
 
 
 =head1 SEE ALSO
