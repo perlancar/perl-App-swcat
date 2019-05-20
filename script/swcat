@@ -16,7 +16,9 @@ my $cli = Perinci::CmdLine::Any->new(
     url => $prefix,
     log => 1,
     subcommands => {
-        'list' => {url=>"${prefix}list"},
+        'list' => {url=>"${prefix}list"}, # old alias for list-installed, for backward compatibility
+        'list-installed' => {url=>"${prefix}list_installed"},
+        'list-cpan' => {url=>"${prefix}list_cpan"},
         'latest-version' => {url=>"${prefix}latest_version"},
         'available-versions' => {url=>"${prefix}available_versions"},
         'download-url' => {url=>"${prefix}download_url"},

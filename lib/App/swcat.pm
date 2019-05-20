@@ -259,9 +259,10 @@ sub _cache_result {
     $res;
 }
 
-$SPEC{list} = {
+$SPEC{list_installed} = {
     v => 1.1,
-    summary => 'List known software in the catalog',
+    summary => 'List known software in the catalog '.
+        '(from installed Software::Catalog::SW::* modules)',
     args => {
         %args_common,
         detail => {
@@ -270,7 +271,7 @@ $SPEC{list} = {
         },
     },
 };
-sub list {
+sub list_installed {
     require PERLANCAR::Module::List;
 
     my %args = @_;
@@ -296,6 +297,70 @@ sub list {
     }
 
     [200, "OK", \@rows];
+}
+
+# for backward compatibility
+$SPEC{list} = $SPEC{list_installed};
+*list = \&list_installed;
+
+$SPEC{list_cpan} = {
+    v => 1.1,
+    summary => 'List available known software in the catalog '.
+        '(from Software::Catalog::SW::* modules on CPAN)',
+    args => {
+        %args_common,
+        detail => {
+            schema => ['bool*', is=>1],
+            cmdline_aliases => {l=>{}},
+        },
+        lcpan => {
+            schema => 'bool*',
+        },
+    },
+};
+sub list_cpan {
+    my %args = @_;
+
+    my @methods = $args{lcpan} ?
+        ('lcpan', 'metacpan') : ('metacpan', 'lcpan');
+
+  METHOD:
+    for my $method (@methods) {
+        if ($method eq 'lcpan') {
+            unless (eval { require App::lcpan::Call; 1 }) {
+                warn "App::lcpan::Call is not installed, skipped listing ".
+                    "modules from local CPAN mirror\n";
+                next METHOD;
+            }
+            my $res = App::lcpan::Call::call_lcpan_script(
+                argv => [qw/mods --namespace Software::Catalog::SW/],
+            );
+            return $res if $res->[0] != 200;
+            return [200, "OK",
+                    [map {my $w = $_; $w =~ s/\ASoftware::Catalog::SW:://; $w }
+                         grep {/Software::Catalog::SW::/} sort @{$res->[2]}]];
+        } elsif ($method eq 'metacpan') {
+            unless (eval { require MetaCPAN::Client; 1 }) {
+                warn "MetaCPAN::Client is not installed, skipped listing ".
+                    "modules from MetaCPAN\n";
+                next METHOD;
+            }
+            my $mcpan = MetaCPAN::Client->new;
+            my $rs = $mcpan->module({
+                'module.name'=>'Software::Catalog::SW::*',
+            });
+            my @res;
+            while (my $row = $rs->next) {
+                my $mod = $row->module->[0]{name};
+                say "D: mod=$mod" if $ENV{DEBUG};
+                $mod =~ s/\ASoftware::Catalog::SW:://;
+                push @res, $mod unless grep {$mod eq $_} @res;
+            }
+            warn "Empty result from MetaCPAN\n" unless @res;
+            return [200, "OK", [sort(@res)]];
+        }
+    }
+    return [412, "Can't find a way to list CPAN mirrors"];
 }
 
 sub _get_arg_softwares_or_patterns {
