@@ -9,6 +9,7 @@ use warnings;
 use Log::ger; BEGIN { $ENV{LOG_LEVEL} //= 'info' }
 
 use Perinci::CmdLine::Any;
+use Perinci::CmdLineX::CommonOptions::SelfUpgrade;
 
 my $prefix = "/App/swcat/";
 
@@ -26,6 +27,7 @@ my $cli = Perinci::CmdLine::Any->new(
         'archive-info' => {url=>"${prefix}archive_info"},
     },
 );
+Perinci::CmdLineX::CommonOptions::SelfUpgrade->apply_to_object($cli);
 $cli->run;
 
 # ABSTRACT: Software catalog
