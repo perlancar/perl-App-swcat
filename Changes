@@ -1,3 +1,9 @@
+0.014   2019-10-26  Released-By: PERLANCAR; Urgency: high
+
+	- Adjust to Software::Catalog 1.0.6 (incompatible change, renamed
+	  methods).
+
+
 0.013   2019-06-07  Released-By: PERLANCAR
 
 	- Add --self-upgrade (-U).
