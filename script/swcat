@@ -17,12 +17,14 @@ my $cli = Perinci::CmdLine::Any->new(
     url => $prefix,
     log => 1,
     subcommands => {
-        'list' => {url=>"${prefix}list"}, # old alias for list-installed, for backward compatibility
-        'list-installed' => {url=>"${prefix}list_installed"},
-        'list-cpan' => {url=>"${prefix}list_cpan"},
-        'latest-version' => {url=>"${prefix}latest_version"},
+        'archive-info' => {url=>"${prefix}archive_info"},
+        'available-archs' => {url=>"${prefix}available_archs"},
         'available-versions' => {url=>"${prefix}available_versions"},
         'download-url' => {url=>"${prefix}download_url"},
+        'list-cpan' => {url=>"${prefix}list_cpan"},
+        'list-installed' => {url=>"${prefix}list_installed"},
+        'latest-version' => {url=>"${prefix}latest_version"},
+        'release-note' => {url=>"${prefix}release_note"},
     },
 );
 Perinci::CmdLineX::CommonOptions::SelfUpgrade->apply_to_object($cli);
@@ -33,10 +35,14 @@ $cli->run;
 
 =head1 SYNOPSIS
 
- # list known software (known = has correponding Software::Catalog::SW::*
- # module installed)
- % swcat list
- % swcat list -l  ;# detail
+ # list software known by local installation (known = has correponding
+ # Software::Catalog::SW::* module installed)
+ % swcat list-installed
+ % swcat list-installed -l  ;# detail
+
+ # list software known by App::swcat (list all available
+ # Software::Catalog::SW::* modules on CPAN)
+ % swcat list-cpan
 
  # what is the latest version number of a software?
  % swcat latest-version firefox  ;# by default will be cached for a day

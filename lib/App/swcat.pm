@@ -51,7 +51,7 @@ our $db_schema_spec = {
 
 our $re_software = qr/\A[A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*\z/;
 
-our %args_common = (
+our %args_common0 = (
     db_path => {
         summary => 'Location of SQLite database (for caching), '.
             'defaults to ~/.cache/swcat.db',
@@ -65,6 +65,10 @@ our %args_common = (
             no_cache => {summary => 'Alias for --cache-period=-1', is_flag=>1, code=>sub { $_[0]{cache_period} = -1 }},
         },
     },
+);
+
+our %args_common = (
+    %args_common0,
     arch => {
         schema => 'software::arch*',
         tags => ['common'],
@@ -461,6 +465,74 @@ sub available_versions {
     my $mod = _load_swcat_mod($sw);
     return [501, "Not implemented"] unless $mod->can("available_versions");
     $mod->available_versions(arch => $args{arch});
+}
+
+$SPEC{available_archs} = {
+    v => 1.1,
+    summary => 'Get list of available architectures of a software',
+    description => <<'_',
+
+
+_
+    args => {
+        %args_common0,
+        %arg0_software,
+    },
+};
+sub available_archs {
+    my %args = @_;
+    my $state = _init(\%args, 'rw');
+
+    my $sw = $args{software};
+
+    my $mod = _load_swcat_mod($sw);
+    $mod->available_archs;
+}
+
+$SPEC{release_note} = {
+    v => 1.1,
+    summary => 'Get release note of (a version of) a software',
+    description => <<'_',
+
+
+_
+    args => {
+        %args_common,
+        %arg0_software,
+        %argopt_arch,
+        %argopt1_version,
+    },
+};
+sub release_note {
+    my %args = @_;
+    my $state = _init(\%args, 'ro');
+
+    my $sw = delete $args{software};
+    my $mod = _load_swcat_mod($sw);
+    $mod->release_note(%args);
+}
+
+$SPEC{archive_info} = {
+    v => 1.1,
+    summary => 'Get info of a software archive',
+    args => {
+        %args_common,
+        %arg0_software,
+        #%arg_version,
+        %argopt_arch,
+    },
+};
+sub archive_info {
+    my %args = @_;
+    my $state = _init(\%args, 'ro');
+
+    my $sw = $args{software};
+
+    my $mod = _load_swcat_mod($sw);
+    my $res = $mod->archive_info(
+        maybe arch => $args{arch},
+    );
+    $res;
 }
 
 $SPEC{download_url} = {
