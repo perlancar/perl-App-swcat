@@ -486,7 +486,7 @@ sub available_archs {
     my $sw = $args{software};
 
     my $mod = _load_swcat_mod($sw);
-    $mod->available_archs;
+    [200, "OK", [$mod->available_archs]];
 }
 
 $SPEC{release_note} = {
