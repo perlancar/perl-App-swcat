@@ -23,8 +23,6 @@ my $cli = Perinci::CmdLine::Any->new(
         'latest-version' => {url=>"${prefix}latest_version"},
         'available-versions' => {url=>"${prefix}available_versions"},
         'download-url' => {url=>"${prefix}download_url"},
-        'release-note' => {url=>"${prefix}release_note"},
-        'archive-info' => {url=>"${prefix}archive_info"},
     },
 );
 Perinci::CmdLineX::CommonOptions::SelfUpgrade->apply_to_object($cli);

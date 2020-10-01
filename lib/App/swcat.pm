@@ -1,6 +1,8 @@
 package App::swcat;
 
+# AUTHORITY
 # DATE
+# DIST
 # VERSION
 
 use 5.010001;
@@ -162,23 +164,6 @@ sub _connect_db {
     $dbh;
 }
 
-sub _detect_arch {
-    require Config; Config->import;
-    my $archname = $Config{archname};
-    if ($archname =~ /\Ax86-linux/) {
-        return "linux-x86"; # linux i386
-    } elsif ($archname =~ /\Ax86-linux/) {
-    } elsif ($archname =~ /\Ax86_64-linux/) {
-        return "linux-x86_64";
-    } elsif ($archname =~ /\AMSWin32-x86(-|\z)/) {
-        return "win32";
-    } elsif ($archname =~ /\AMSWin32-x64(-|\z)/) {
-        return "win64";
-    } else {
-        die "Unsupported arch '$archname'";
-    }
-}
-
 sub _set_args_default {
     my $args = shift;
     if (!$args->{db_path}) {
@@ -187,7 +172,8 @@ sub _set_args_default {
             '/.cache/swcat.db';
     }
     if (!$args->{arch}) {
-        $args->{arch} = _detect_arch;
+        require Software::Catalog::Util;
+        $args->{arch} = Software::Catalog::Util::detect_arch();
     }
     if (!defined $args->{cache_period}) {
         $args->{cache_period} = 86400;
@@ -519,53 +505,6 @@ sub download_url {
     } else {
         $res->[2] = \@rows;
     }
-    $res;
-}
-
-$SPEC{release_note} = {
-    v => 1.1,
-    summary => 'Get release note of (a version of) a software',
-    description => <<'_',
-
-
-_
-    args => {
-        %args_common,
-        %arg0_software,
-        %argopt_arch,
-        %argopt1_version,
-    },
-};
-sub release_note {
-    my %args = @_;
-    my $state = _init(\%args, 'ro');
-
-    my $sw = delete $args{software};
-    my $mod = _load_swcat_mod($sw);
-    return [501, "Not implemented"] unless $mod->can("release_note");
-    $mod->release_note(%args);
-}
-
-$SPEC{archive_info} = {
-    v => 1.1,
-    summary => 'Get info of a software archive',
-    args => {
-        %args_common,
-        %arg0_software,
-        #%arg_version,
-        %argopt_arch,
-    },
-};
-sub archive_info {
-    my %args = @_;
-    my $state = _init(\%args, 'ro');
-
-    my $sw = $args{software};
-
-    my $mod = _load_swcat_mod($sw);
-    my $res = $mod->archive_info(
-        maybe arch => $args{arch},
-    );
     $res;
 }
 
